@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Phishing URL Detector</title>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body{
+      background:#0d1117;
+      color:white;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+    }
+
+    .container{
+      width:100%;
+      max-width:700px;
+      background:#161b22;
+      padding:30px;
+      border-radius:15px;
+      box-shadow:0 0 20px rgba(0,255,100,0.2);
+    }
+
+    h1{
+      text-align:center;
+      margin-bottom:10px;
+      color:#00ff88;
+    }
+
+    p{
+      text-align:center;
+      color:#aaa;
+      margin-bottom:25px;
+    }
+
+    input{
+      width:100%;
+      padding:15px;
+      border:none;
+      border-radius:10px;
+      background:#0d1117;
+      color:white;
+      font-size:16px;
+      outline:none;
+      border:1px solid #30363d;
+    }
+
+    button{
+      width:100%;
+      margin-top:15px;
+      padding:15px;
+      border:none;
+      border-radius:10px;
+      background:#00ff88;
+      color:black;
+      font-weight:bold;
+      cursor:pointer;
+      transition:0.3s;
+      font-size:16px;
+    }
+
+    button:hover{
+      opacity:0.8;
+    }
+
+    .result{
+      margin-top:25px;
+      padding:20px;
+      border-radius:10px;
+      background:#0d1117;
+      border:1px solid #30363d;
+      display:none;
+    }
+
+    .safe{
+      color:#00ff88;
+    }
+
+    .danger{
+      color:#ff4d4d;
+    }
+
+    ul{
+      margin-top:10px;
+      padding-left:20px;
+    }
+
+    li{
+      margin-bottom:8px;
+      color:#ccc;
+    }
+
+    .score{
+      margin-top:15px;
+      font-size:20px;
+      font-weight:bold;
+    }
+
+    footer{
+      margin-top:25px;
+      text-align:center;
+      color:#666;
+      font-size:14px;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:5px 10px;
+      border-radius:20px;
+      margin-top:10px;
+      font-size:14px;
+      font-weight:bold;
+    }
+
+    .low{
+      background:#003d1f;
+      color:#00ff88;
+    }
+
+    .medium{
+      background:#4d3b00;
+      color:#ffcc00;
+    }
+
+    .high{
+      background:#4d0000;
+      color:#ff4d4d;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <h1>🔒 URL Phishing Detector</h1>
+  <p>Analyze suspicious URLs for phishing indicators</p>
+
+  <input type="text" id="urlInput" placeholder="Enter URL here..." />
+
+  <button onclick="analyzeURL()">Analyze URL</button>
+
+  <div class="result" id="resultBox">
+    <h2 id="statusText"></h2>
+
+    <div class="score" id="riskScore"></div>
+
+    <div id="riskBadge"></div>
+
+    <ul id="reasons"></ul>
+  </div>
+
+  <footer>
+    Educational Cybersecurity Project
+  </footer>
+
+</div>
+
+<script>
+
+function analyzeURL(){
+
+  const url = document.getElementById("urlInput").value.trim();
+
+  const resultBox = document.getElementById("resultBox");
+  const statusText = document.getElementById("statusText");
+  const reasons = document.getElementById("reasons");
+  const riskScore = document.getElementById("riskScore");
+  const riskBadge = document.getElementById("riskBadge");
+
+  reasons.innerHTML = "";
+
+  if(url === ""){
+    alert("Please enter a URL");
+    return;
+  }
+
+  let score = 0;
+  let findings = [];
+
+  // Check for HTTPS
+  if(!url.startsWith("https://")){
+    score += 20;
+    findings.push("URL does not use HTTPS");
+  }
+
+  // IP Address detection
+  const ipRegex = /https?:\/\/(\d{1,3}\.){3}\d{1,3}/;
+
+  if(ipRegex.test(url)){
+    score += 30;
+    findings.push("URL uses an IP address instead of a domain");
+  }
+
+  // Suspicious symbols
+  if(url.includes("@")){
+    score += 20;
+    findings.push("URL contains '@' symbol");
+  }
+
+  // Too many hyphens
+  const hyphenCount = (url.match(/-/g) || []).length;
+
+  if(hyphenCount >= 3){
+    score += 15;
+    findings.push("Too many hyphens detected");
+  }
+
+  // Very long URL
+  if(url.length > 75){
+    score += 15;
+    findings.push("URL is unusually long");
+  }
+
+  // Suspicious keywords
+  const suspiciousWords = [
+    "login",
+    "verify",
+    "update",
+    "banking",
+    "secure",
+    "account",
+    "free",
+    "bonus",
+    "paypal",
+    "crypto"
+  ];
+
+  suspiciousWords.forEach(word => {
+    if(url.toLowerCase().includes(word)){
+      score += 5;
+      findings.push(`Suspicious keyword detected: "${word}"`);
+    }
+  });
+
+  // Too many subdomains
+  const domainParts = url.replace("https://","").replace("http://","").split("/")[0].split(".");
+
+  if(domainParts.length > 4){
+    score += 20;
+    findings.push("Too many subdomains detected");
+  }
+
+  resultBox.style.display = "block";
+
+  // Display findings
+  findings.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    reasons.appendChild(li);
+  });
+
+  // Final result
+  riskScore.innerHTML = `Risk Score: ${score}/100`;
+
+  if(score <= 20){
+
+    statusText.innerHTML = "✅ URL appears safe";
+    statusText.className = "safe";
+
+    riskBadge.innerHTML = `<span class="badge low">LOW RISK</span>`;
+
+  }else if(score <= 50){
+
+    statusText.innerHTML = "⚠️ Suspicious URL detected";
+    statusText.className = "danger";
+
+    riskBadge.innerHTML = `<span class="badge medium">MEDIUM RISK</span>`;
+
+  }else{
+
+    statusText.innerHTML = "🚨 High phishing risk detected";
+    statusText.className = "danger";
+
+    riskBadge.innerHTML = `<span class="badge high">HIGH RISK</span>`;
+  }
+
+  if(findings.length === 0){
+    reasons.innerHTML = "<li>No major phishing indicators detected</li>";
+  }
+
+}
+
+</script>
+
+</body>
+</html>
