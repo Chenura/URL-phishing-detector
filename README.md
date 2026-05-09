@@ -4,7 +4,7 @@ A modern phishing URL detection tool built using HTML, CSS, and JavaScript.
 
 This cybersecurity-focused GitHub Pages project analyzes suspicious URLs and detects common phishing indicators such as fake domains, IP-based URLs, suspicious keywords, excessive subdomains, and insecure connections.
 
-
+link for the page https://chenura.github.io/URL-phishing-detector/
 ---
 
 # ✨ Features
